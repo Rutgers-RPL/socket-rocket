@@ -10,7 +10,7 @@ PORT = 65432  # Port to listen on (non-privileged ports are > 1023)
 STRUCT_SIZE = 105  # Set
 
 dataStruct = struct.Struct('@ h I f f s s f f f f f f f f f f f f f f I')  # set
-serial_port = 'COM3'  # Set
+serial_port = 'COM5'  # Set
 baudrate = 9600
 
 
