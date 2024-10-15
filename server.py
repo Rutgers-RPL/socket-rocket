@@ -74,8 +74,8 @@ def read_serial(ser, client_list):
                         if pythonChecksum == teensyChecksum:
                             # packet_s = dataStruct.unpack(raw)
                             packet_d = raw_data
-        except serial.SerialException:
-            print("Serial not found")
+        except serial.SerialException as err:
+            print(err)
 
         # print(packet_d)
         time.sleep(1)
@@ -94,8 +94,8 @@ client_list = []
 
 try:
     ser = serial.Serial(port=serial_port, baudrate=baudrate)
-except serial.SerialException:
-    print("Serial not found")
+except serial.SerialException as err:
+    print(err)
     ser = None
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
