@@ -70,13 +70,14 @@ def read_serial(ser, client_list):
                         unpacked_struct = struct.unpack(dataStruct, raw_data)
                         pythonChecksum = zlib.crc32(raw_data)
                         teensyChecksum = unpacked_struct[20]
+                        print(unpacked_struct[2]) #time
                         if pythonChecksum == teensyChecksum:
                             # packet_s = dataStruct.unpack(raw)
                             packet_d = raw_data
         except serial.SerialException:
             print("Serial not found")
 
-        print(packet_d)
+        # print(packet_d)
         time.sleep(1)
         if packet_d is None:
             packet_d = b'no data'
