@@ -1,18 +1,19 @@
-import socket
+import asyncio
+from websockets.server import serve
+import websockets
 import struct
 import zlib
-import threading
-import time
-import serial.tools.list_ports
+import serial
 
 HOST = "127.0.0.1"  # localhost
-PORT = 65432  # Port to listen on (non-privileged ports are > 1023)
+PORT = 8765  # Port to listen on (non-privileged ports are > 1023)
 STRUCT_SIZE = 105  # Set
 
-dataStruct = struct.Struct('@ h I f f s s f f f f f f f f f f f f f f I')  # set
+data_struct = struct.Struct('@ h I f f s s f f f f f f f f f f f f f f I')  # set
 serial_port = 'COM5'  # Set
 baudrate = 9600
 
+client_list = []
 
 #   short magic;                   // 2 bytes -   2
 #   unsigned int status;           // 4 byte  -   3
@@ -59,7 +60,7 @@ baudrate = 9600
 #     return ports[ser_port_index]
 
 
-def read_serial(ser, client_list):
+async def read_serial(ser, client_list):
     while True:
         packet_d = None
         try:
@@ -67,45 +68,51 @@ def read_serial(ser, client_list):
                 if ser.read(1) == bytes.fromhex('ef'):
                     if ser.read(1) == bytes.fromhex('be'):
                         raw_data = ser.read(STRUCT_SIZE)
-                        unpacked_struct = struct.unpack(dataStruct, raw_data)
+                        unpacked_struct = struct.unpack(data_struct, raw_data)
                         pythonChecksum = zlib.crc32(raw_data)
                         teensyChecksum = unpacked_struct[20]
-                        print(unpacked_struct[2]) #time
+                        print(unpacked_struct[2])  # time
                         if pythonChecksum == teensyChecksum:
                             # packet_s = dataStruct.unpack(raw)
-                            packet_d = raw_data
+                            packet_d = unpacked_struct
         except serial.SerialException as err:
             print(err)
 
         # print(packet_d)
-        time.sleep(1)
         if packet_d is None:
-            packet_d = b'no data'
-        if len(client_list) != 0:
-            for client in client_list:
-                try:
-                    client.sendall(packet_d)
-                except ConnectionError:
-                    print("CONNECTION TO CLIENT LOST")
-                    client_list.remove(client)
+            packet_d = 'No data'
+        for client in client_list:
+            try:
+                await client.send(packet_d)
+            except websockets.exceptions.ConnectionClosed as err:
+                print(err)
+
+        await asyncio.sleep(1)
 
 
-client_list = []
+async def handle_client(websocket):
+    client_list.append(websocket)
+    print('Client Connected')
+    await websocket.send('Hi there!')
 
-try:
-    ser = serial.Serial(port=serial_port, baudrate=baudrate)
-except serial.SerialException as err:
-    print(err)
-    ser = None
+    await websocket.wait_closed()
 
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.bind((HOST, PORT))
-server.listen(5)
-print('SERVER STARTED')
+    client_list.remove(websocket)
+    print('Client Disconnected')
 
-threading.Thread(target=read_serial, args=(ser, client_list,)).start()
 
-while True:
-    conn, addr = server.accept()
-    print("CLIENT CONNECTED")
-    client_list.append(conn)
+async def main():
+    try:
+        ser = serial.Serial(port=serial_port, baudrate=baudrate)
+    except serial.SerialException as err:
+        print(err)
+        ser = None
+
+    server = await serve(handle_client, HOST, PORT)
+
+    await read_serial(ser, client_list)
+
+    # await server.wait_closed()
+    await asyncio.get_running_loop().create_future()
+
+asyncio.run(main())
