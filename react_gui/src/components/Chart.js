@@ -1,10 +1,37 @@
-import React from "react";
-
+import React, { useState } from "react";
+import Card from "./Card.js";
+import { ResponsiveContainer, AreaChart, Area, Tooltip,XAxis,YAxis } from "recharts";
 const Chart = ({ title }) => {
+  const details = {
+    status: "good",
+    time: "1029102390123",
+    battery: "5",
+    pressure: "10",
+    temp: "40",
+    latitude: "1",
+    longitude: "1",
+  };
+  const [data, setData] = useState(details);
+  const [filter, setFilter] = useState(title);
+
+  const formatData = () => {};
   return (
-    <div className="bg-gray-800 p-4 rounded shadow-md flex justify-center items-center h-96">
-        <div class="text-blue-300">{ title }</div>
-    </div>
+    <Card>
+      <ResponsiveContainer>
+        <AreaChart data={formatData(data)}>
+          <Area
+            type="montone"
+            dataKey="value" 
+            stroke="#312e81"
+            fillOpacity={1}
+            strokeWidth={0.5}
+          />
+          <Tooltip/>
+          <XAxis dataKey={"time"}/>
+          <YAxis domain={["dataMin","dataMax"]}/>
+        </AreaChart>
+      </ResponsiveContainer>
+    </Card>
   );
 };
 

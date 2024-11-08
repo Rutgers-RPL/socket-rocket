@@ -46,11 +46,9 @@ const Dashboard = () => {
             <Chart title="Chart 2" />
             <Chart title="Chart 3" />
             <Chart title="Chart 4" />
+            <Chart title="Chart 5" />
+            <Chart title="Chart 6" />
           </div>
-
-          <div></div>
-
-
 
         </div>
 
