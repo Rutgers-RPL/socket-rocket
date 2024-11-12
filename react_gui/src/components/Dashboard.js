@@ -1,21 +1,74 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Navbar from "./Nav.js"
+import useSocket from "../hooks/useSocket.js";
 import Chart from "./Chart.js"
 import Card from "./Card.js";
 import Header from "./Header.js";
 import Details from "./Details.js";
 import ChartLayout from "./ChartLayout.js";
+import StopWatch from "./StopWatch.js";
+
 const Dashboard = () => {
-  return (
-    // <div
-    //   className="h-screen grid grid-cols-1 
-    // md:grid-cols-2 xl:grid-cols-3 grid-rows-8 
-    // md:grid-rows-7 xl:grid-rows-5 auto-rows-fr 
-    // gap-6 p-10 font-oxanium"
-    // >
-    //   <div className="col-span-1 md:col-span-2 xl:col-span-3 row-span-1 flex justify-start items-center">
-    //     <Header port="need to fix" />
-    //   </div>
+  const { data, isConnect, webSocket } = useSocket('ws://localhost:8765');
+
+  const [formattedData, setFormattedData] = useState({});
+
+  const [timeWhenConnected, setTimeWhenConnected] = useState(null);
+
+  const [numDataPoints, setNumDataPoints] = useState(0);
+
+  // const [batteryDelta, setBatteryDelta] = useState(0);
+
+  // const [refreshRate, setRefreshRate] = useState(0);
+
+  // const [latitude, setLatitude] = useState(0);
+
+  // const [longitude, setLongitude] = useState(0);
+
+  const batteryCharges=[];
+
+
+  function calculateBatteryDelta(batteryDeltaArr) {
+      let delta=batteryDeltaArr[batteryDeltaArr.length-1]-batteryDeltaArr[0];
+    
+			if(batteryDeltaArr.length > 10) {
+				batteryDeltaArr.shift();
+			}
+      return delta;
+  }
+
+
+  useEffect(() => {
+    if(isConnect && !timeWhenConnected) {
+      setTimeWhenConnected(timeWhenConnected)
+    }
+
+    if(!isConnect) {
+      setTimeWhenConnected(null);
+    }
+
+    if(data){
+      setFormattedData((prevFormattedData) => {
+        let tempFormat = {...prevFormattedData};
+        Object.keys(data).forEach((key) => {
+          if (!tempFormat[key]) {
+            tempFormat[key] = [];
+          }
+          tempFormat[key].push(data[key])
+        })
+        setNumDataPoints(numDataPoints + 1);
+        batteryCharges.push(data["main_voltage_v"]);   
+        console.log(batteryCharges);     
+        return tempFormat; 
+      });
+  } 
+  }, [data, isConnect]);
+
+  
+
+  // <div className="col-span-1 md:col-span-2 xl:col-span-3 row-span-1 flex justify-start items-center">
+  //   //     <Header port="need to fix" />
+  //   //   </div>
     //   <div className="md:col-span-2 row-span-4">
     //     <ChartLayout data=""/>
     //   </div>
@@ -35,34 +88,21 @@ const Dashboard = () => {
     //       }}
     //     />
     //   </div>
-    // </div>
 
+  return (
     <main>
-        <Navbar />
+        <Navbar data={{'connection': isConnect, 'numDataPoints': numDataPoints, "batteryAvgChange": batteryCharges.length >10 ? calculateBatteryDelta(batteryCharges) : '0'}} webSocket={webSocket} />
         <div className="grid grid-cols-2">
-
           <div className="col-span-2 grid grid-cols-2 gap-4 p-4 bg-gray-900 min-h-screen">
-            <Chart title="Chart 1" />
-            <Chart title="Chart 2" />
-            <Chart title="Chart 3" />
-            <Chart title="Chart 4" />
-            <Chart title="Chart 5" />
-            <Chart title="Chart 6" />
+            <Chart title='Acceleration' data={formattedData["acceleration"]} />
+            <Chart title='Velocity'  data={formattedData['velocity']} />
+            <Chart title='Position'  data={formattedData['position']} />
+            <Chart title='Barometric Altitude'  data={formattedData['barometer_hMSL_m']} />
+            <Chart title='Z Acceleration' data={formattedData['z_acceleration']}/>
+            {/* <StopWatch timeWhenConnected={timeWhenConnected} /> */}
           </div>
-
         </div>
-
-
-        
-
     </main>
-
-   
-
-
-    
-
-
   );
 };
 
