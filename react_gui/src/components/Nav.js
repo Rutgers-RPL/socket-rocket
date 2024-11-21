@@ -17,7 +17,7 @@ const Navbar = ( { data, webSocket } ) => {
             <img src="/RRPLLogo.png" alt="Logo" className="h-10 w-50" />
             <h1 className="text-sky-100">Connection Status: { data['connection'] ? 'Connected' : 'Disconnected' }</h1>
             <h1 className="text-sky-100">Data Points: {data['numDatapoints']}</h1>
-            <h1 className="text-sky-100">Battery Delta: {data["batteryAvgChange"]}</h1>
+            {/* <h1 className="text-sky-100">Battery Delta: {data["batteryAvgChange"]}</h1> */}
             {/* <h1 className="text-sky-100">Refresh Rate: {refreshRate}</h1>
             <h1 className="text-sky-100">latitude: {latitude}</h1> */}
             {/* <h1 className="text-sky-100">longitude: {longitude}</h1> */}

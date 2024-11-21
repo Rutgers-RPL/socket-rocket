@@ -7,6 +7,7 @@ import Header from "./Header.js";
 import Details from "./Details.js";
 import ChartLayout from "./ChartLayout.js";
 import StopWatch from "./StopWatch.js";
+import GPS from "./GPS.js";
 
 const Dashboard = () => {
   const { data, isConnect, webSocket } = useSocket('ws://localhost:8765');
@@ -91,17 +92,29 @@ const Dashboard = () => {
 
   return (
     <main>
-        <Navbar data={{'connection': isConnect, 'numDataPoints': numDataPoints, "batteryAvgChange": batteryCharges.length >10 ? calculateBatteryDelta(batteryCharges) : '0'}} webSocket={webSocket} />
-        <div className="grid grid-cols-2">
-          <div className="col-span-2 grid grid-cols-2 gap-4 p-4 bg-gray-900 min-h-screen">
-            <Chart title='Acceleration' data={formattedData["acceleration"]} />
-            <Chart title='Velocity'  data={formattedData['velocity']} />
-            <Chart title='Position'  data={formattedData['position']} />
-            <Chart title='Barometric Altitude'  data={formattedData['barometer_hMSL_m']} />
-            <Chart title='Z Acceleration' data={formattedData['z_acceleration']}/>
-            {/* <StopWatch timeWhenConnected={timeWhenConnected} /> */}
+          <Navbar data={{'connection': isConnect, 'numDataPoints': numDataPoints, "batteryAvgChange": batteryCharges.length >10 ? calculateBatteryDelta(batteryCharges) : '0'}} webSocket={webSocket} />
+          <div className="grid grid-flow-row grid-cols-4 bg-gray-900 h-screen">
+          
+            <div className="border-double border-r-4 border-sky-500 col-span-3 grid grid-cols-2 h-full overflow-auto">
+              <div className="col-span-2 grid grid-cols-2 gap-4 p-4 ">
+                <div className="col-span-2">
+                  <GPS data={{'latitude': formattedData['latitude'], 'longitude': formattedData['longitude']}}/>
+                </div>
+                <Chart title='Acceleration' data={formattedData["acceleration"]} />
+                <Chart title='Velocity'  data={formattedData['velocity']} />
+                <Chart title='Position'  data={formattedData['position']} />
+                <Chart title='Barometric Altitude'  data={formattedData['barometer_hMSL_m']} />
+                <Chart title='Z Acceleration' data={formattedData['z_acceleration']}/>
+                  {/* <StopWatch timeWhenConnected={timeWhenConnected} /> */}
+              </div>
+            </div>
+            <div className="col-span-1 gap-4 p-4">
+            <Details
+            data={formattedData}
+          />
+            </div>
+            
           </div>
-        </div>
     </main>
   );
 };

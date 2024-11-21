@@ -71,7 +71,7 @@ const Chart = ({ title, data }) => {
     },
 
     })
-                  .ChartXY({ container: id, theme:Themes.cyberSpace })
+                  .ChartXY({ container: id, theme:Themes.turquoiseHexagon })
                   .setTitle(title)
                   
     // if (showLegend) legendbox = chart.addLegendBox().add(chart);
