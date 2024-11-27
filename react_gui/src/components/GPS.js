@@ -1,81 +1,182 @@
-import React, { useEffect, useRef, useState} from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet'
-import 'leaflet/dist/leaflet.css';
-import UpdateMapSettings from "./gps-components/UpdateMapSettings";
-import UpdateLocation from "./gps-components/UpdateLocation";
+import React, { useState, useEffect } from 'react';
+import { Feature, Map, View } from 'ol';
+import TileLayer from 'ol/layer/WebGLTile';
+import LayerSwitcher from 'ol-layerswitcher';
+import { XYZ, GeoTIFF } from 'ol/source';
+import 'ol/ol.css';
+import 'ol-layerswitcher/dist/ol-layerswitcher.css'; 
+import { Point } from 'ol/geom';
+import {Style, Icon} from 'ol/style';
+import VectorLayer from 'ol/layer/Vector';
+import VectorSource from 'ol/source/Vector';
 
+//GPS Component, (ik it's not very React-like, but leaflet is very annoying to work with)
+const GPS = ( {data} ) => {
 
-
-
-
-const GPS = ({data}) => {
+    const [geoTiffloaded, setGeoTiffLoaded] = useState(false);
+    const [point, setPoint] = useState(null)
+    const [mapState, setMapState] = useState()
     const [center, setCenter] = useState([0,0]);
     const [minZoom, setMinzoom] = useState(null);
     const [maxZoom, setMaxzoom] = useState(null);
-    const [maxBounds, setMaxbounds] = useState(null)
+    const [maxBounds, setMaxbounds] = useState([0,0,0,0])
     const [zoomLevel, setZoomlevel] = useState(13);
-    const [currPos, setCurrPos] = useState(center); //[lat, long]
+    const [currPos, setCurrPos] = useState(center); //[long, lat]
 
-    //this parses the tiles.json file, which contains boundaries, zoomlevels, and center for the Tiles folder
+
+    //Load once component mounts: load tile settings and geotiff file
     useEffect(() => {
-      const jsonFile = fetch('/Tiles/tiles.json')
-      .then(res => res.text()) //tiles.json contains comments, so convert contents into text to be deleted later
-      .then((tilesText) => {
 
-        if(tilesText)
-        { 
-          const deletedComments = tilesText.replace(/\/\/.*$/gm, "").trim(); //return contents of tiles.json without the comments
+        const jsonFile = fetch('/Tiles/tiles.json')
+        .then(res => res.text()) //tiles.json contains comments, so convert contents into text to be deleted later
+        .then((tilesText) => {
+  
+          if(tilesText)
+          { 
+            const deletedComments = tilesText.replace(/\/\/.*$/gm, "").trim(); //return contents of tiles.json without the comments
+  
+            const tilesOptions = JSON.parse(deletedComments); //convert the contents into a json object
+            // console.log(tilesOptions);
+            setCenter([tilesOptions['center'][0], tilesOptions['center'][1]])
+            setMinzoom(tilesOptions['minzoom'])
+            setMaxzoom(tilesOptions['maxzoom'])
+            setMaxbounds([
+                tilesOptions["bounds"][0], tilesOptions["bounds"][1],
+                tilesOptions["bounds"][2], tilesOptions["bounds"][3]])
+            setZoomlevel(tilesOptions["center"][2]);
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+        });
 
-          const tilesOptions = JSON.parse(deletedComments); //convert the contents into a json object
-          console.log(tilesOptions);
-          setCenter([tilesOptions['center'][1], tilesOptions['center'][0]])
-          setMinzoom(tilesOptions['minzoom'])
-          setMaxzoom(tilesOptions['maxzoom'])
-          setMaxbounds( [
-              [tilesOptions["bounds"][1], tilesOptions["bounds"][0]],
-              [tilesOptions["bounds"][3], tilesOptions["bounds"][2]]
-          ])
-          setZoomlevel(tilesOptions["center"][2]);
+        //load geotiff file
+        try {
+            const geoTiffLoad = new GeoTIFF({
+                sources: [
+                    {url: '/sattelite.tif'}
+                ],
+                projection: 'EPSG:4326'
+            })
+            // console.log(geoTiffLoad);
+            setGeoTiffLoaded(geoTiffLoad);
         }
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-    }, [])
+        catch (error) {
+            setGeoTiffLoaded(null);
+            console.log(error);
+        }
+      }, [])
+  
 
-    useEffect(() => {
-      setCurrPos([data['latitude']? data['latitude'].slice(-1): center[0], data['longitude']? data['longitude'].slice(-1): center[1]])
-    }, [data['latitude'], data['longitude']]);
+      //Render map whenever center and bounds change
+      useEffect(() => {
 
+       
+        //OSM Tile Layer
+        const osmLayer2 = new TileLayer({
+            source: new XYZ({
+                url:'/Tiles/{z}/{x}/{y}.png' //get tiles from public/Tiles in raster tile format
+            }),
+            title: 'OSM',
+            type: 'base',
+            visible: true,
+        });
+
+       
+        //Sattelite Tile Layer
+        const satLayer = new TileLayer({
+            source: geoTiffloaded, //geoTiff info from component mount
+            title: 'Sattelite',
+            type: 'base',
+            visible: false,
+        });
+       
+        //Render map
+        const map = new Map({
+            target: "map",
+            layers: [osmLayer2, satLayer],
+            view: new View({
+                center: [0,0],
+                zoom: zoomLevel,
+                maxZoom: maxZoom,
+                minZoom: minZoom,
+                extent: maxBounds,
+                projection: 'EPSG:4326',
+                
+              }),
+              
+          });
+
+        //Render Layer Switcher
+        const layerSwitcher = new LayerSwitcher({
+            tipLabel: 'Legend'
+        });
+
+        map.addControl(layerSwitcher);
+
+        setMapState(map);
         
-    return(
-        <div className="bg-gray-800 p-4 rounded shadow-md flex justify-center items-center h-96">
-        <MapContainer 
-        center={center} 
-        zoom={zoomLevel} 
-        minZoom={minZoom}
-        maxBounds={maxBounds}
-        maxZoom={maxZoom}
-        scrollWheelZoom={true} 
-        style={ {height:'100%', width: '100%'}}
-        >            <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="/Tiles/{z}/{x}/{y}.png"
-            />
-            {/* <LocationMarker /> */}
-            <UpdateMapSettings
-            center={center}
-            zoomLevel={zoomLevel}
-            maxBounds={maxBounds}
-            minZoom={minZoom}
-            maxZoom={maxZoom}/>
-            <UpdateLocation 
-            latitude={currPos[0]}
-            longitude={currPos[1]} 
-            />
-        </MapContainer>
-    </div>
-    )
+        //Clean up
+        return () => map.setTarget(null)
+    }, [center, maxBounds]);
+
+
+    
+    //Update current position
+    useEffect(() => {
+        if(data['longitude'] && data['latitude']){
+            setCurrPos([data['longitude'].slice(-1), data['latitude'].slice(-1)]);
+        }
+    }, [data['longitude']?.length, data['latitude']?.length]);
+
+
+
+    //Render a point at current rocket location
+    useEffect(() => {
+        try
+        {   
+            // console.log('lat/long', currPos)
+            if(!point && currPos && mapState) {
+            const pointFeature = new Feature({
+                geometry: new Point(currPos),
+            });
+            pointFeature.setStyle(
+                new Style({
+                    image: new Icon({
+                        src:'spaceship.png',
+                        scale:0.1
+                    })
+                })
+            )
+            const vectorLayer = new VectorLayer({
+                source: new VectorSource({
+                    features: [pointFeature]
+                })
+            })
+
+            mapState.addLayer(vectorLayer);
+
+            setPoint(pointFeature);
+            // console.log('point added')
+            // setMapState(mapState)
+            }
+            else if(point && currPos && mapState) {
+                point.getGeometry().setCoordinates(currPos);
+                setPoint(point);
+            }
+        }
+        catch (error) {
+            console.log(error);
+        }
+       
+        
+    }, [currPos])
+
+    return (
+      <div className="bg-gray-800 p-4 rounded shadow-md flex justify-center items-center h-96">
+            <div style={{height:'100%', width:'100%', overflow:'hidden'}} id="map" className='map-container' />
+      </div>
+    );
 
 
 }

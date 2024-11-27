@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 const useSocket= (host) => {
     const [webSocket, setWebSocket] = useState(null);
     const [data, setData] = useState(null);
+    const [dataStatus, setDataStatus] = useState(false);
     const [isConnect, setIsConnected] = useState(false);
     const [timer, setTimer] = useState(null)
 
@@ -23,8 +24,10 @@ const useSocket= (host) => {
 
         //whenever server sends a message 
         ws.onmessage = (event) => {
-            let event_data = JSON.parse(event.data);
-            setData(event_data);
+            if (event.data != 'No Data') {
+                let event_data = JSON.parse(event.data);
+                setData(event_data);
+            }   
         }
 
         //error handling

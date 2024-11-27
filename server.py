@@ -7,7 +7,8 @@ import struct
 import zlib
 import serial
 import csv
-import random
+# import random
+import time
 import json
 
 HOST = "127.0.0.1"  # localhost
@@ -21,9 +22,9 @@ baudrate = 115200
 
 keys = [
 		"status",
-		"time",
-		"battery_charge",
-		"pyto_voltage_v",
+		"time_us",
+		"main_voltage_v",
+		"pyro_voltage_v",
 		"sattelites",
 		"gpsFixType",
 		"latitude",
@@ -133,6 +134,9 @@ async def read_serial(ser, client_list):
             print(err)
 
         # print(packet_d)
+        # packet_d = {key: random.randrange(1,100) for key in keys}
+        # packet_d['longitude'] = random.uniform(-180, 180)
+        # packet_d['latitude'] = random.uniform(-90,90)
         packet_d = json.dumps(packet_d)
         if packet_d is None:
             packet_d = 'No data'
@@ -142,12 +146,13 @@ async def read_serial(ser, client_list):
             except websockets.exceptions.ConnectionClosed as err:
                 print(err)
 
-        await asyncio.sleep(0.05)
+        await asyncio.sleep(1)
 
 
 async def handle_client(websocket):
-    client_list.append(websocket)
-    print('Client Connected')
+    if websocket not in client_list:
+        client_list.append(websocket)
+        print('Client Connected')
     # print(client_list)
     
     async for message in websocket:
@@ -163,7 +168,10 @@ async def handle_client(websocket):
 
 
 async def main():
-    serial_port = select_port()[0]
+    serial_port = select_port()
+    while not serial_port:
+        serial_port = select_port() 
+        time.sleep(1)
     try:
         ser = serial.Serial(port=serial_port, baudrate=baudrate)
     except serial.SerialException as err:
