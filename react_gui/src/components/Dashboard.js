@@ -1,68 +1,81 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Navbar from "./Nav.js"
+import useSocket from "../hooks/useSocket.js";
 import Chart from "./Chart.js"
-import Card from "./Card.js";
-import Header from "./Header.js";
 import Details from "./Details.js";
-import ChartLayout from "./ChartLayout.js";
+import Viz from "./Viz.js";
+import GPS from "./GPS.js";
+
 const Dashboard = () => {
-  return (
-    // <div
-    //   className="h-screen grid grid-cols-1 
-    // md:grid-cols-2 xl:grid-cols-3 grid-rows-8 
-    // md:grid-rows-7 xl:grid-rows-5 auto-rows-fr 
-    // gap-6 p-10 font-oxanium"
-    // >
-    //   <div className="col-span-1 md:col-span-2 xl:col-span-3 row-span-1 flex justify-start items-center">
-    //     <Header port="need to fix" />
-    //   </div>
-    //   <div className="md:col-span-2 row-span-4">
-    //     <ChartLayout data=""/>
-    //   </div>
-    //   <div>
-    //     <Card>Overview</Card>
-    //   </div>
-    //   <div className="row-span-2 l:row-span-3">
-    //     <Details
-    //       details={{
-    //         status: "good",
-    //         time: "1029102390123",
-    //         battery: "5",
-    //         pressure: "10",
-    //         temp: "40",
-    //         latitude: "1",
-    //         longitude: "1",
-    //       }}
-    //     />
-    //   </div>
-    // </div>
+  const { data, isConnect, webSocket, dataStatus } = useSocket('ws://localhost:8765');
 
-    <main>
-        <Navbar />
-        <div className="grid grid-cols-2">
+  const [formattedData, setFormattedData] = useState({});
 
-          <div className="col-span-2 grid grid-cols-2 gap-4 p-4 bg-gray-900 min-h-screen">
-            <Chart title="Chart 1" />
-            <Chart title="Chart 2" />
-            <Chart title="Chart 3" />
-            <Chart title="Chart 4" />
-            <Chart title="Chart 5" />
-            <Chart title="Chart 6" />
-          </div>
+  const [timeWhenConnected, setTimeWhenConnected] = useState(0);
 
-        </div>
+  const [numDataPoints, setNumDataPoints] = useState(0);
 
 
-        
 
-    </main>
+  useEffect(() => {
+    if(isConnect && timeWhenConnected == 0) {
+      console.log('changing')
+      setTimeWhenConnected(Date.now())
+    }
 
-   
+    if(!isConnect) {
+     setTimeWhenConnected(0)
+    }
 
-
+    if(data && dataStatus){
+      setFormattedData((prevFormattedData) => {
+        let tempFormat = {...prevFormattedData};
+        Object.keys(data).forEach((key) => {
+          if (!tempFormat[key]) {
+            tempFormat[key] = [];
+          }
+          tempFormat[key].push(data[key])
+        })
+        setNumDataPoints(numDataPoints + 1);
+        return tempFormat; 
+      });
     
+    } 
+    else {
+      console.log('no data')
+    }
+  }, [data, isConnect]);
 
 
+  
+
+  return (
+    <main className="flex flex-col h-screen">
+          <Navbar data={{'connection': isConnect, 'numDataPoints': numDataPoints}} webSocket={webSocket} />
+          <div className="grid grid-flow-row grid-cols-4 bg-gray-900 h-screen overflow-auto">
+          
+            <div className="border-double border-r-4 border-sky-500 col-span-3 grid grid-cols-2 h-full overflow-auto">
+              <div className="col-span-2 grid grid-cols-2 gap-4 p-4 ">
+                <div className="col-span-2">
+                  <GPS data={{'latitude': formattedData['latitude'], 'longitude': formattedData['longitude']}} />
+                </div>
+                <Chart title='Position'  data={formattedData['position']} />
+                {/* <Viz data={{'x': 'dummyx', 'y': 'dummyy', 'z': 'dummyz', 'w': 'dummyw'}}/> */}
+                <Chart title='Acceleration' data={formattedData["acceleration"]} />
+                <Chart title='Velocity'  data={formattedData['velocity']} />
+                <Chart title='Barometric Altitude'  data={formattedData['barometer_hMSL_m']} />
+                <Chart title='Z Acceleration' data={formattedData['z_acceleration']}/>
+              </div>
+            </div>
+            <div className="col-span-1 gap-4 p-4">
+            <Details
+            data={formattedData}
+            timeWhenConnected={timeWhenConnected}
+          />
+            </div>
+          </div>
+            
+    </main>
   );
 };
 
