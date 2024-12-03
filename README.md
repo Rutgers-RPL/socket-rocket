@@ -1,5 +1,6 @@
 # RRPL Web GUI
-GUI for visualizing real-time telemetry data
+RPL GUI for visualizing real-time telemetry data. Client side is built using React and Server side is built in Python. The server handles incoming packets from the board and sends it the client via websockets to be displayed in the GUI.
+
 ## First Time Set Up
 1) Clone the repo
     ```
@@ -35,7 +36,7 @@ GUI for visualizing real-time telemetry data
     python server.py
     ```
 3) The server will prompt you to select the port by inputting the corresponding number\
-    **Note**: If the board gets disconnected, you must **restart** the server again.
+    **Note**: If the board gets disconnected, you must **restart** the server.
 
 
 ## Maps Set Up
