@@ -5,8 +5,11 @@ import Chart from "./Chart.js"
 import Details from "./Details.js";
 import Viz from "./Viz.js";
 import GPS from "./GPS.js";
+import Command from "./Command.js";
 
 const Dashboard = () => {
+
+
   const { data, isConnect, webSocket, dataStatus } = useSocket('ws://localhost:8765');
 
   const [formattedData, setFormattedData] = useState({});
@@ -15,6 +18,10 @@ const Dashboard = () => {
 
   const [numDataPoints, setNumDataPoints] = useState(0);
 
+  const onSend =(msg)=>{
+    //logic to send back through socket here
+    console.log(msg)
+  }
 
 
   useEffect(() => {
@@ -72,6 +79,7 @@ const Dashboard = () => {
             data={formattedData}
             timeWhenConnected={timeWhenConnected}
           />
+          <Command onSubmit={onSend}/>
             </div>
           </div>
             
