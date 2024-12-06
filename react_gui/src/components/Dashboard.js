@@ -19,7 +19,9 @@ const Dashboard = () => {
   const [numDataPoints, setNumDataPoints] = useState(0);
 
   const onSend =(msg)=>{
-    //logic to send back through socket here
+    if (msg.trim() !== '') {
+      webSocket.emit('message', { text: msg});
+    }
     console.log(msg)
   }
 
