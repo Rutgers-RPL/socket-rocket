@@ -5,7 +5,6 @@ import Chart from "./Chart.js"
 import Details from "./Details.js";
 import Viz from "./Viz.js";
 import GPS from "./GPS.js";
-import Command from "./Command.js";
 
 const Dashboard = () => {
 
@@ -17,13 +16,6 @@ const Dashboard = () => {
   const [timeWhenConnected, setTimeWhenConnected] = useState(0);
 
   const [numDataPoints, setNumDataPoints] = useState(0);
-
-  const onSend =(msg)=>{
-    if (msg.trim() !== '') {
-      webSocket.emit('message', { text: msg});
-    }
-    console.log(msg)
-  }
 
 
   useEffect(() => {
@@ -69,7 +61,7 @@ const Dashboard = () => {
                   <GPS data={{'latitude': formattedData['latitude'], 'longitude': formattedData['longitude']}} />
                 </div>
                 <Chart title='Position'  data={formattedData['position']} />
-                {/* <Viz data={{'x': 'dummyx', 'y': 'dummyy', 'z': 'dummyz', 'w': 'dummyw'}}/> */}
+                <Viz data={{'x': 'dummyx', 'y': 'dummyy', 'z': 'dummyz', 'w': 'dummyw'}}/>
                 <Chart title='Acceleration' data={formattedData["acceleration"]} />
                 <Chart title='Velocity'  data={formattedData['velocity']} />
                 <Chart title='Barometric Altitude'  data={formattedData['barometer_hMSL_m']} />
@@ -81,7 +73,6 @@ const Dashboard = () => {
             data={formattedData}
             timeWhenConnected={timeWhenConnected}
           />
-          <Command onSubmit={onSend}/>
             </div>
           </div>
             

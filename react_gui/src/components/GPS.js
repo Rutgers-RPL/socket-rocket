@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Feature, Map, View } from 'ol';
 import TileLayer from 'ol/layer/WebGLTile';
 import LayerSwitcher from 'ol-layerswitcher';
-import { XYZ, GeoTIFF } from 'ol/source';
+import { XYZ } from 'ol/source';
 import 'ol/ol.css';
 import 'ol-layerswitcher/dist/ol-layerswitcher.css'; 
 import { Point } from 'ol/geom';
@@ -13,7 +13,6 @@ import VectorSource from 'ol/source/Vector';
 //GPS Component, (ik it's not very React-like, but leaflet is very annoying to work with)
 const GPS = ( {data} ) => {
 
-    const [geoTiffloaded, setGeoTiffLoaded] = useState(false);
     const [point, setPoint] = useState(null)
     const [mapState, setMapState] = useState()
     const [center, setCenter] = useState([0,0]);
@@ -24,10 +23,10 @@ const GPS = ( {data} ) => {
     const [currPos, setCurrPos] = useState(center); //[long, lat]
 
 
-    //Load once component mounts: load tile settings and geotiff file
+    //Load once component mounts: load tile settings
     useEffect(() => {
 
-        const jsonFile = fetch('/Tiles/tiles.json')
+        const jsonFile = fetch('/gps-info/Tiles/tiles.json')
         .then(res => res.text()) //tiles.json contains comments, so convert contents into text to be deleted later
         .then((tilesText) => {
   
@@ -50,21 +49,6 @@ const GPS = ( {data} ) => {
           console.log(error);
         });
 
-        //load geotiff file
-        try {
-            const geoTiffLoad = new GeoTIFF({
-                sources: [
-                    {url: '/sattelite.tif'}
-                ],
-                projection: 'EPSG:4326'
-            })
-            // console.log(geoTiffLoad);
-            setGeoTiffLoaded(geoTiffLoad);
-        }
-        catch (error) {
-            setGeoTiffLoaded(null);
-            console.log(error);
-        }
       }, [])
   
 
@@ -75,7 +59,7 @@ const GPS = ( {data} ) => {
         //OSM Tile Layer
         const osmLayer2 = new TileLayer({
             source: new XYZ({
-                url:'/Tiles/{z}/{x}/{y}.png' //get tiles from public/Tiles in raster tile format
+                url:'/gps-info/Tiles/{z}/{x}/{y}.png' //get tiles from public/gps-info/Tiles in raster tile format
             }),
             title: 'OSM',
             type: 'base',
@@ -85,7 +69,9 @@ const GPS = ( {data} ) => {
        
         //Sattelite Tile Layer
         const satLayer = new TileLayer({
-            source: geoTiffloaded, //geoTiff info from component mount
+            source: new XYZ({
+                url:'/gps-info/sattelite/{z}/{x}/{y}.png' //get sattelite tiles from public/gps-info/sattelite in raster tile format
+            }),
             title: 'Sattelite',
             type: 'base',
             visible: false,
@@ -95,6 +81,7 @@ const GPS = ( {data} ) => {
         const map = new Map({
             target: "map",
             layers: [osmLayer2, satLayer],
+            renderer: 'webgl',
             view: new View({
                 center: [0,0],
                 zoom: zoomLevel,

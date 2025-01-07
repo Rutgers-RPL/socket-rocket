@@ -64,7 +64,7 @@ const Chart = ({ title, data }) => {
   useEffect( () => {
     const chart = lightningChart(
       {
-      license: "0002-n3Kei2+JqP3mbgcisdTOqyUYkI9dKwBznrJ7kaTi8nYLPWlsFq7MjLj6N0CRKnGEhitt1MItFk92rt167zJjsqiu-MEUCIDmZsdNiMy4uw/r8V7eEl10rvnW8OF+DmWC7itAAEChIAiEA2cNQHKBUzKVR56eimH17WbRLSvoAhWAI7IMSB0PCUyg=",
+      license: "0002-n71TDwSwesVZoCSPFS4k69kws9ZOKwC8UzYQqXvaTbklkM2W/O4wpJujJI9crhq9VBPSGuGAsrWc7iFSzGtwfWUq-MEQCICABNaoaQiy2VVDLMwf+Tw7Gqam0yUKoU6D6zB8UTPtzAiBEoD3ChGJkbdDYIsHiHSoxTnjQfBTrAwRFLy16CJdxdA==",
       licenseInformation: {
         appTitle: "LightningChart JS Trial",
         company: "LightningChart Ltd."
