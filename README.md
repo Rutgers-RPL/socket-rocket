@@ -41,6 +41,11 @@ RPL GUI for visualizing real-time telemetry data. Client side is built using Rea
 
 ## Maps Set Up
 
+## NOTE: Setting up Sattelite maps will take some time. It's recommended to use pre-downloaded maps [here](https://drive.google.com/drive/folders/1n7pxRwksL6Ffj0wpfKVfFYrYnAcfO_xd?usp=drive_link) (host it on RPL GDrive)
+Download > Extract > paste sattelite and Tiles in react-gui/public/gps-info
+
+##
+
 ### Open Street Maps
 1) Download [Maperitive](http://maperitive.net/)
 2) Navigate to [Open Street Maps](https://www.openstreetmap.org/)
@@ -68,28 +73,45 @@ RPL GUI for visualizing real-time telemetry data. Client side is built using Rea
     ![Error Displaying Image!](/img/maperitive-tiles.png "Tiles Folder")
 
 
-7) Copy-paste the "Tiles" folder (found in the same directory as Maperitive) into **react-gui/public**
+7) Copy-paste the "Tiles" folder (found in the same directory as Maperitive) into **react-gui/public/gps-info**
 
 8) To generate new tiles, navigate to **Tools > Clear Web Cache** to delete the existing tiles or manually delete them from the "Tiles" folder. Then repeat the steps above.
 
 
 ### Sattelite Map
-1) Navigate to [LAADS NASA](https://ladsweb.modaps.eosdis.nasa.gov/view-data/)
-2) Zoom into the desired area
+1) Navigate to [USGS Earth Explorer](https://earthexplorer.usgs.gov/) and create an account if you don't have one
 
-   **Note**: For best results, I suggest searching by Lat, Long by clicking on the marker icon on the left and choosing find location
-   ![Error Displaying Image!](/img/laads-location.png "LAADS Find Location")
+2) On "Search Criteria" use either "Polygon" or "Circle" to select the desired area
 
+    ![Error Displaying Image!](/img/search.png "USGS Search Location")
 
-3) Click capture in the bottom, **de-select** all check boxes, and download as a **GeoTIFF file**
-    ![Error Displaying Image!](/img/laads-capture.png "OSM Export")
+   **Polygon**: "Use Map" selects the current viewing area, "Add coordinate" allows for manual input of coordinates of each corner
 
+   **Circle**: Enter a center lat/long with a specified radius
 
+3) Click **Data Sets** > Search for **NAIP** in the search bar > Select the **NAIP** check box
+    ![Error Displaying Image!](/img/data_sets.png "USGS Data Sets")
 
-4) Then rename the saved .tiff file to '**sattelite.tiff**'
+4) Proceed to **Results**, all available maps are displayed in the results area
    
-   **Note**: Make the sure the spelling is correct. Web frameworks can only read explicit file paths and the saved .tiff file always changes name depending on its location.
+5) Using the **Footprint** icon, highlight all maps that cover the selected area 
+    ![Error Displaying Image!](/img/results.png "USGS Data Sets")
 
-5) Copy-paste **sattelite.tiff** into **react-gui/public**
+6) For each highlighted map: click **Download Options** > Download **Full Resolution**
 
+    ![Error Displaying Image!](/img/download_options.png "USGS Data Sets")
+
+    **Note**: This may take a while depending on how big the area is
+
+7) Extract the downloaded folders, copy the .tif files in each folder, and paste them in the root directory of the repo (/socket-rocket)
+    ![Error Displaying Image](/img/tif_file.png "Tif Image")
+
+8) Run the following command, which will merge all the .tif files and divide them into xyz tiles (no need to paste them into public/gps-info)
+    ```
+    python sat_script.py
+    ```
+
+    **Note**: **This will take some time** depending on how many big/how many files there are to merge
+
+9) Repeat to generate a new set of tiles, but ensure that previous .tif images are deleted before running the script
    
