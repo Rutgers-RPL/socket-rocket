@@ -41,7 +41,7 @@ RPL GUI for visualizing real-time telemetry data. Client side is built using Rea
 
 ## Maps Set Up
 
-## NOTE: Setting up Sattelite maps will take some time. It's recommended to use pre-downloaded maps [here](https://drive.google.com/drive/folders/1n7pxRwksL6Ffj0wpfKVfFYrYnAcfO_xd?usp=drive_link) (host it on RPL GDrive)
+## NOTE: Setting up Sattelite maps will take some time. It's recommended to use pre-downloaded maps [here](https://drive.google.com/drive/folders/1_mppBWiT4dvveJHQujdgvaxjKuk3gEIj)
 Download > Extract > paste sattelite and Tiles in react-gui/public/gps-info
 
 ##
