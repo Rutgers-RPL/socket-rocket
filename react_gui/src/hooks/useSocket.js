@@ -24,7 +24,7 @@ const useSocket= (host) => {
 
         //whenever server sends a message 
         ws.onmessage = (event) => {
-            if (event.data != 'No Data') {
+            if (event.data !== 'No Data') {
                 let event_data = JSON.parse(event.data);
                 setData(event_data);
             }   

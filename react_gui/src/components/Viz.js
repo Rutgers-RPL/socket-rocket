@@ -11,15 +11,15 @@ const Viz = ({ quaternion }) => {
     // const [rocket, setRocket] = useState(undefined);
     const rocket = useRef();
     const geometry = useLoader(STLLoader, 'Rocket.stl');
-    // console.log('Geometry loaded:', geometry);
+    console.log('Geometry loaded:', geometry);
 
-    // if (rocket.current) {
-    //     rocket.current.quaternion.set(quaternion.x, quaternion.y,  quaternion.z, quaternion.w);
-    // }
+    if (rocket.current) {
+        rocket.current.quaternion.set(quaternion.x, quaternion.y,  quaternion.z, quaternion.w);
+    }
 
-    // if (rocket.current) {
-    //     rocket.current.quaternion.set(quaternion.x?.slice(-1), quaternion.y?.slice(-1), quaternion.z?.slice(-1), quaternion.w?.slice(-1));
-    // }
+    if (rocket.current) {
+        rocket.current.quaternion.set(quaternion.x?.slice(-1), quaternion.y?.slice(-1), quaternion.z?.slice(-1), quaternion.w?.slice(-1));
+    }
 
 
     return(
