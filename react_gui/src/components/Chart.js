@@ -3,7 +3,7 @@ import {
     AxisScrollStrategies,
 		lightningChart,
     Themes,
-} from "@lightningchart/lcjs";
+} from "@arction/lcjs";
 
 
 //Charting logic: set up chart, create a lineseries for the list, append points to the lineseries
@@ -62,15 +62,7 @@ const Chart = ({ title, data }) => {
 
   //chart set up
   useEffect( () => {
-    const chart = lightningChart(
-      {
-      license: "0002-n9vdhxcwaH+ZUGpNLZb/NAp1DZaFKwDa3b4DKWpjjUloUfUuJzHj4SXj7+nSJgk9RqkS6q9Cig1HMfIXciu7G+ui-MEUCIQCXryl//Jqdo38bHe7xdxDCGgeDj+ZcWEF9KiZiM9CzvQIgXAaSd+pGX7WhVPibVxnqDE0ztr26ACYt6zQPixWJpeU=",
-      licenseInformation: {
-        appTitle: "LightningChart JS Trial",
-        company: "LightningChart Ltd."
-    },
-
-    })
+    const chart = lightningChart()
                   .ChartXY({ container: id, theme:Themes.turquoiseHexagon })
                   .setTitle(title)
                   

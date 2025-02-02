@@ -9,7 +9,7 @@ import GPS from "./GPS.js";
 const Dashboard = () => {
 
 
-  const { data, isConnect, webSocket, dataStatus } = useSocket('ws://localhost:8765');
+  const { data, isConnect, webSocket } = useSocket('ws://localhost:8765');
 
   const [formattedData, setFormattedData] = useState({});
 
@@ -28,7 +28,7 @@ const Dashboard = () => {
      setTimeWhenConnected(0)
     }
 
-    if(data && dataStatus){
+    if(data){
       setFormattedData((prevFormattedData) => {
         let tempFormat = {...prevFormattedData};
         Object.keys(data).forEach((key) => {

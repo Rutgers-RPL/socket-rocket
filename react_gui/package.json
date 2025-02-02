@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@arction/lcjs": "^5.2.1",
+    "@arction/lcjs": "^4.2.1",
     "@lightningchart/lcjs": "^6.0.3",
     "@react-three/drei": "^9.117.3",
     "@react-three/fiber": "^8.17.10",

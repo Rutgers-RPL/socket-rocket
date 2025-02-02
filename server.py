@@ -146,7 +146,7 @@ async def read_serial(ser, client_list):
             except websockets.exceptions.ConnectionClosed as err:
                 print(err)
 
-        await asyncio.sleep(1)
+        await asyncio.sleep(0.1)
 
 
 async def handle_client(websocket):
@@ -183,7 +183,6 @@ async def main():
     with open('data.csv', 'w', newline='') as file:
         writer = csv.DictWriter(file, fieldnames=keys)
         writer.writeheader()
-
     await read_serial(ser, client_list)
 
     # await server.wait_closed()
