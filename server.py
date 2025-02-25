@@ -96,7 +96,7 @@ def select_port():
         print(f"{port.device}: {i}")
         i += 1
     ser_port_index = int(input("Select Port: "))
-    return ports[ser_port_index]
+    return ports[ser_port_index].device
 
 
 
@@ -169,9 +169,9 @@ async def handle_client(websocket):
 
 async def main():
     serial_port = select_port()
-    while not serial_port:
-        serial_port = select_port() 
-        time.sleep(1)
+   # while not serial_port:
+    #    serial_port = select_port() 
+     #   time.sleep(1)
     try:
         ser = serial.Serial(port=serial_port, baudrate=baudrate)
     except serial.SerialException as err:
