@@ -41,8 +41,7 @@ const Navbar = ( { data, webSocket } ) => {
           <h1 className="text-sky-100 text-right">Connection Status: { data['connection'] ? 'Connected' : 'Disconnected' }</h1>
           </div>
           <div className="flex items-center space-x-4">
-          <Command webSocket={webSocket}/>
-
+            <Command webSocket={webSocket}/>
           </div>
         </div>
       </nav>

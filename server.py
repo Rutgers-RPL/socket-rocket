@@ -7,7 +7,8 @@ import struct
 import zlib
 import serial
 import csv
-# import random
+import random
+import functools
 import time
 import json
 
@@ -133,7 +134,6 @@ async def read_serial(ser, client_list):
         except serial.SerialException as err:
             print(err)
 
-        # print(packet_d)
         # packet_d = {key: random.randrange(1,100) for key in keys}
         # packet_d['longitude'] = random.uniform(-180, 180)
         # packet_d['latitude'] = random.uniform(-90,90)
@@ -149,7 +149,13 @@ async def read_serial(ser, client_list):
         await asyncio.sleep(0.1)
 
 
-async def handle_client(websocket):
+async def serial_write(ser, message):
+    if ser is not None:
+        message = message.encode("utf-8")
+        
+        await ser.write(message)
+
+async def handle_client(websocket, ser):
     if websocket not in client_list:
         client_list.append(websocket)
         print('Client Connected')
@@ -159,6 +165,7 @@ async def handle_client(websocket):
         #Any logic for client to server communication
 
         print('Message from client:', message)
+        await serial_write(ser, message)
     # await websocket.send('Hi there!')
 
     await websocket.wait_closed()
@@ -177,8 +184,7 @@ async def main():
     except serial.SerialException as err:
         print(err)
         ser = None
-
-    server = await serve(handle_client, HOST, PORT)
+    server = await serve(functools.partial(handle_client, ser=ser), HOST, PORT)
 
     with open('data.csv', 'w', newline='') as file:
         writer = csv.DictWriter(file, fieldnames=keys)
