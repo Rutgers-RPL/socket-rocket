@@ -61,7 +61,7 @@ const Dashboard = () => {
                   <GPS data={{'latitude': formattedData['latitude'], 'longitude': formattedData['longitude']}} />
                 </div>
                 <Chart title='Position'  data={formattedData['position']} />
-                {/* <Viz data={{'x': 'dummyx', 'y': 'dummyy', 'z': 'dummyz', 'w': 'dummyw'}}/> */}
+                <Viz quaternion={{'x': formattedData['x'], 'y': formattedData['y'], 'z': formattedData['z'], 'w': formattedData['w']}}/>
                 <Chart title='Acceleration' data={formattedData["acceleration"]} />
                 <Chart title='Velocity'  data={formattedData['velocity']} />
                 <Chart title='Barometric Altitude'  data={formattedData['barometer_hMSL_m']} />
