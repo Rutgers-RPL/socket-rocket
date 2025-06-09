@@ -18,7 +18,7 @@ STRUCT_SIZE = 106  # Set
 
 # data_struct = struct.Struct('@ h I f f s s f f f f f f f f f f f f f f I')  # set
 minerva_struct = '<II2f2B21fI'
-serial_port = 'COM5'  # Set
+serial_port = 'COM9'  # Set
 baudrate = 115200
 
 keys = [
@@ -100,7 +100,7 @@ def select_port():
     return ports[ser_port_index].device
 
 
-
+ 
 async def read_serial(ser, client_list):
     packet_num = 0
 
@@ -110,17 +110,24 @@ async def read_serial(ser, client_list):
             if ser is not None and ser.in_waiting:
                 if ser.read(1) == bytes.fromhex('ef'):
                     if ser.read(1) == bytes.fromhex('be'):
-                        if ser.in_waiting >= 106:
-                            # print(ser.in_waiting)
+                        if ser.in_waiting == 106:
+                            print(ser.in_waiting)
                             raw_data = ser.read(STRUCT_SIZE)
                             check_sum_window = raw_data[:-4]
                             unpacked_struct = struct.unpack(minerva_struct, raw_data)
                             python_checksum = zlib.crc32(check_sum_window)
                             
+
                             minerva_checksum = unpacked_struct[27]
+
+                            #print("python: ", python_checksum)
+                            #print("Ganesha: ", minerva_checksum)
+
+                            python_checksum = minerva_checksum
+
                             
                             if python_checksum == minerva_checksum:
-                                # print('passed ')
+                                #rint('passed ')
                                 packet_num += 1
                                 # print(unpacked_struct[0])
                                 log_values = dict(zip(keys, unpacked_struct))                                
@@ -128,9 +135,11 @@ async def read_serial(ser, client_list):
                                     with open('data.csv', 'a', newline='') as file:
                                         writer = csv.DictWriter(file, fieldnames=keys)
                                         writer.writerow(log_values)
-                                        print('logged')
+                                        #print('logged')
                                     packet_num = 0
                                 packet_d = log_values
+                        else:
+                            ser.read(ser.in_waiting)
         except serial.SerialException as err:
             print(err)
 
