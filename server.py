@@ -105,55 +105,55 @@ async def read_serial(ser, client_list):
     packet_num = 0
 
     while True:
-        packet_d = None
-        try:
-            if ser is not None and ser.in_waiting:
+        try:   
+            while ser is not None and ser.in_waiting > 106:
+                packet_d = None
                 if ser.read(1) == bytes.fromhex('ef'):
                     if ser.read(1) == bytes.fromhex('be'):
-                        if ser.in_waiting == 106:
-                            print(ser.in_waiting)
-                            raw_data = ser.read(STRUCT_SIZE)
-                            check_sum_window = raw_data[:-4]
-                            unpacked_struct = struct.unpack(minerva_struct, raw_data)
-                            python_checksum = zlib.crc32(check_sum_window)
-                            
+                        raw_data = ser.read(STRUCT_SIZE)
+                        check_sum_window = raw_data[:-4]
+                        unpacked_struct = struct.unpack(minerva_struct, raw_data)
+                        python_checksum = zlib.crc32(check_sum_window)
+                        
 
-                            minerva_checksum = unpacked_struct[27]
+                        minerva_checksum = unpacked_struct[27]
 
-                            #print("python: ", python_checksum)
-                            #print("Ganesha: ", minerva_checksum)
+                        #print("python: ", python_checksum)
+                        #print("Ganesha: ", minerva_checksum)
 
-                            python_checksum = minerva_checksum
+                        python_checksum = minerva_checksum
 
-                            
-                            if python_checksum == minerva_checksum:
-                                #rint('passed ')
-                                packet_num += 1
-                                # print(unpacked_struct[0])
-                                log_values = dict(zip(keys, unpacked_struct))                                
-                                if packet_num == 5:
-                                    with open('data.csv', 'a', newline='') as file:
-                                        writer = csv.DictWriter(file, fieldnames=keys)
-                                        writer.writerow(log_values)
-                                        #print('logged')
-                                    packet_num = 0
-                                packet_d = log_values
-                        else:
-                            ser.read(ser.in_waiting)
+                        
+                        if python_checksum == minerva_checksum:
+                            packet_num += 1
+                            # print(unpacked_struct[0])
+                            log_values = dict(zip(keys, unpacked_struct))
+                            if 'time_us' in log_values:
+                                log_values['time_us'] = time.time()                             
+                            if packet_num == 5:
+                                with open('data.csv', 'a', newline='') as file:
+                                    writer = csv.DictWriter(file, fieldnames=keys)
+                                    writer.writerow(log_values)
+                                    #print('logged')
+                                packet_num = 0
+                            packet_d = log_values
+                            packet_d = json.dumps(packet_d)  
+                        #else:
+                            #    continue
+                if packet_d is None:
+                    continue
+                for client in client_list:
+                    try:
+                        await client.send(packet_d)
+                    except websockets.exceptions.ConnectionClosed as err:
+                        print(err)
         except serial.SerialException as err:
             print(err)
 
         # packet_d = {key: random.randrange(1,100) for key in keys}
         # packet_d['longitude'] = random.uniform(-180, 180)
         # packet_d['latitude'] = random.uniform(-90,90)
-        packet_d = json.dumps(packet_d)
-        if packet_d is None:
-            packet_d = 'No data'
-        for client in client_list:
-            try:
-                await client.send(packet_d)
-            except websockets.exceptions.ConnectionClosed as err:
-                print(err)
+        
 
         await asyncio.sleep(0.1)
 
