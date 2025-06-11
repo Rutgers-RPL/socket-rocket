@@ -1,10 +1,11 @@
+import os
 import asyncio
 import serial.tools
 import serial.tools.list_ports
 from websockets.server import serve
 import websockets
 import struct
-import zlib
+from fastcrc import crc32
 import serial
 import csv
 import random
@@ -21,12 +22,17 @@ minerva_struct = '<II2f2B21fI'
 serial_port = 'COM9'  # Set
 baudrate = 115200
 
+file_num = 0
+
+while os.path.exists(f'data_{file_num}.csv'):
+    file_num += 1
+
 keys = [
 		"status",
 		"time_us",
 		"main_voltage_v",
 		"pyro_voltage_v",
-		"sattelites",
+		"satellites",
 		"gpsFixType",
 		"latitude",
 		"longitude",
@@ -98,30 +104,27 @@ def select_port():
         i += 1
     ser_port_index = int(input("Select Port: "))
     return ports[ser_port_index].device
-
-
  
 async def read_serial(ser, client_list):
     packet_num = 0
 
     while True:
-        try:   
-            while ser is not None and ser.in_waiting >= 108:
+        try:
+            while ser is not None and ser.in_waiting > 108:
                 packet_d = None
                 if ser.read(1) == bytes.fromhex('ef'):
                     if ser.read(1) == bytes.fromhex('be'):
                         raw_data = ser.read(STRUCT_SIZE)
                         check_sum_window = raw_data[:-4]
                         unpacked_struct = struct.unpack(minerva_struct, raw_data)
-                        python_checksum = zlib.crc32(check_sum_window)
+                        python_checksum = crc32.mpeg_2(check_sum_window, initial=None)
                         
-
                         minerva_checksum = unpacked_struct[27]
 
-                        #print("python: ", python_checksum)
-                        #print("Ganesha: ", minerva_checksum)
+                        # print("python: ", python_checksum)
+                        # print("Ganesha: ", minerva_checksum)
 
-                        python_checksum = minerva_checksum
+                        # python_checksum = minerva_checksum
 
                         
                         if python_checksum == minerva_checksum:
@@ -130,10 +133,11 @@ async def read_serial(ser, client_list):
                                 print('cam off')
                             #print(unpacked_struct[0])
                             log_values = dict(zip(keys, unpacked_struct))
+                            print(log_values['status'])
                             if 'time_us' in log_values:
                                 log_values['time_us'] = time.time()                             
                             if packet_num == 5:
-                                with open('data.csv', 'a', newline='') as file:
+                                with open(f'data_{file_num}.csv', 'a', newline='') as file:
                                     writer = csv.DictWriter(file, fieldnames=keys)
                                     writer.writerow(log_values)
                                     #print('logged')
@@ -161,10 +165,10 @@ async def read_serial(ser, client_list):
 
 
 async def serial_write(ser, message):
-    if ser is not None:
-        message = message.encode("utf-8")
-        
-        await ser.write(message)
+    if ser is None:
+        return
+    message_bytes = message.encode("utf-8")
+    await asyncio.to_thread(ser.write, message_bytes)
 
 async def handle_client(websocket, ser):
     if websocket not in client_list:
@@ -197,9 +201,10 @@ async def main():
         ser = None
     server = await serve(functools.partial(handle_client, ser=ser), HOST, PORT)
 
-    with open('data.csv', 'w', newline='') as file:
+    with open(f'data_{file_num}.csv', 'w', newline='') as file:
         writer = csv.DictWriter(file, fieldnames=keys)
         writer.writeheader()
+
     await read_serial(ser, client_list)
 
     # await server.wait_closed()
