@@ -109,7 +109,7 @@ async def read_serial(ser, client_list):
     packet_num = 0
 
     while True:
-        try:   
+        try:
             while ser is not None and ser.in_waiting > 108:
                 packet_d = None
                 if ser.read(1) == bytes.fromhex('ef'):
@@ -129,7 +129,9 @@ async def read_serial(ser, client_list):
                         
                         if python_checksum == minerva_checksum:
                             packet_num += 1
-                            # print(unpacked_struct[0])
+                            if unpacked_struct[0] == 0:
+                                print('cam off')
+                            #print(unpacked_struct[0])
                             log_values = dict(zip(keys, unpacked_struct))
                             print(log_values['status'])
                             if 'time_us' in log_values:
